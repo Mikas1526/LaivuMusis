@@ -33,8 +33,9 @@ Paspaustų klavišų fiksavimui naudojama biblioteka pavadinimu „conio.h“
 =|=|=|>
 =|=|>|
 =|>||
->|||
+\>|||
 
+Jeigu norima pasukti laivą, reikia spausti Space. Jeigu laivą bandoma pastumti už lentos ribų, tai laivas atsiduria kitoje pusėje visas (tai reiškia, kad negali laivo dalys būti skirtingose teritorijos vietose. Taip pat laivai negali būti arčiau vienas prie kito kaip 1 langelis.
 4. Pradedama statyti nuo ilgiausio laivo iki trumpiausio. Pasirinkus tam tikrą laivo statymo vietą, spaudžiama Enter.
 5. Viskas kartojama nuo 1 žingsnio antram žaidėjui.
 ## Žaidimo eiga
