@@ -34,6 +34,6 @@ Paspaustų klavišų fiksavimui naudojama biblioteka pavadinimu „conio.h“
   - taškas (.) vaizduoja nepaliestą kvadratą,
   - X vaizduoja pažeistą laivą,
   - O vaizduoja vietą, kurioje buvo šauta, bet joje nebuvo laivo,
-  - + rodo, kur yra taikomasi,
+  - \+ rodo, kur yra taikomasi,
 ir statusą, kuriame rašo, kiek tavo priešas nukovė tavo laivų.
 3. Enter spaudžiama, kai nusprendžiama, kur šauti. Negalima šauti ten, kur jau buvo šauta. Jeigu pataikoma, leidžiama šauti dar. Jeigu ne – keičiasi žaidėjas ir grįžtama į 1 punktą.
