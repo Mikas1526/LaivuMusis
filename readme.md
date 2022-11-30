@@ -26,8 +26,17 @@ Paspaustų klavišų fiksavimui naudojama biblioteka pavadinimu „conio.h“
 ## Žaidimo pradžia
 1. Reikia paspausti Enter mygtuką, kai ekraną matys tik pirmas žaidėjas.
 2. Paspaudus, pasirodo lenta. Joje taškas (.) reprezentuoja tuščią vietą, <===> reprezentuoja 5 langelių ilgio laivą, <==> - 4, <=> - 3, <> - 2. Jeigu laivas stovi vertikaliai:
-3. Pradedama statyti nuo ilgiausio laivo iki trumpiausio. Pasirinkus tam tikrą laivo statymo vietą, spaudžiama Enter.
-4. Viskas kartojama nuo 1 žingsnio antram žaidėjui.
+
+5|4|3|2
+-|-|-|-
+<|<|<|<
+=|=|=|>
+=|=|>|
+=|>||
+>|||
+
+4. Pradedama statyti nuo ilgiausio laivo iki trumpiausio. Pasirinkus tam tikrą laivo statymo vietą, spaudžiama Enter.
+5. Viskas kartojama nuo 1 žingsnio antram žaidėjui.
 ## Žaidimo eiga
 1. Laukiama, kol ekrane rašomas žaidėjas paspaus Enter mygtuką.
 2. Ekrane pasirodo lenta, kurioje:
