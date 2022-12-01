@@ -120,7 +120,7 @@ int dockShip(char area[sizeL][sizeW], int X, int Y, int length, bool vertical) /
     area[X][Y] = shipStart;
     if (vertical)
     {
-        for (int i = X + 1; i < length - 1; i++)
+        for (int i = X + 1; i < X + length - 1; i++)
         {
             area[i][Y] = shipBody;
         }
@@ -128,7 +128,7 @@ int dockShip(char area[sizeL][sizeW], int X, int Y, int length, bool vertical) /
     }
     else
     {
-        for (int i = Y + 1; i < length - 1; i++)
+        for (int i = Y + 1; i < Y + length - 1; i++)
         {
             area[X][i] = shipBody;
         }
@@ -187,8 +187,8 @@ int main()
 {
     char Player1[sizeL][sizeW], Player2[sizeL][sizeW];
     fillWithEmpty(Player1);
-    fillWithEmpty(Player2);
+    //fillWithEmpty(Player2);
     setUp(Player1, 1);
-    setUp(Player2, 2);
+    //setUp(Player2, 2);
     return 0;
 }
