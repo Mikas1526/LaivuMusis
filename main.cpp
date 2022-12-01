@@ -187,7 +187,8 @@ int main()
 {
     char Player1[sizeL][sizeW], Player2[sizeL][sizeW];
     fillWithEmpty(Player1);
-    //fillWithEmpty(Player2);
+    fillWithEmpty(Player2);
     setUp(Player1, 1);
+    setUp(Player2, 2);
     return 0;
 }
