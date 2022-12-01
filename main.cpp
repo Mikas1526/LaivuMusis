@@ -6,6 +6,7 @@ using namespace std;
 const int sizeL = 12, sizeW = 12, keyError = -1, keyEnter = 0, keySpace = 1, keyUp = 2, keyDown = 3, keyRight = 4, keyLeft = 5;
 char const empty = '.', hurt = 'X', miss = 'O', arrow = '+', shipStart = '<', shipBody = '=', shipEnd = '>';
 
+// funkcijos, kurios visada reikalingos
 int signal() // fiksuoja klaviatūros paspaudimus
 {
     char code;
@@ -31,6 +32,15 @@ void hold(int which) // laukimo ekranas
     cout << endl << "Laukiama, kol žaidėjas Nr. " << which << endl << "paspaus bet kokį mygtuką";
     signal();
 }
+void printGround()
+{
+    cout << "+";
+    for (int i = 0; i < sizeL; i++)
+        cout << "-";
+    cout << "+" << endl;
+}
+
+// funkcijos, kurios skirtos pasiruošimui 
 void fillWithEmpty(char area[sizeL][sizeW])
 {
     for (int i = 0; i < sizeL; i++)
@@ -42,10 +52,7 @@ void printSetUp(char area[sizeL][sizeW], int X, int Y, int length, bool vertical
     system("clear"); // for Linux
     //system("CLS"); // for Windows
     // upper wall
-    cout << "+";
-    for (int i = 0; i < sizeL; i++)
-        cout << "-";
-    cout << "+" << endl;
+    printGround();
     // body
     for (int i = 0; i < sizeL; i++)
     {
@@ -109,10 +116,7 @@ void printSetUp(char area[sizeL][sizeW], int X, int Y, int length, bool vertical
         cout << "|" << endl;
     }
     // lower wall
-    cout << "+";
-    for (int i = 0; i < sizeL; i++)
-        cout << "-";
-    cout << "+" << endl;
+    printGround();
 }
 int dockShip(char area[sizeL][sizeW], int X, int Y, int length, bool vertical) // iraso laivo padeti (grazina -1, jeigu nepaejo, 0, jeigu paejo)
 {
@@ -183,12 +187,77 @@ void setUp(char area[sizeL][sizeW], int which)
         }
     }
 }
+
+// funkcijos, kurios reikalingos žaidimo eigai
+void printInGame(char area[sizeL][sizeW], int X, int Y)
+{
+    printGround();
+    for (int i = 0; i < sizeL; i++)
+    {
+        cout << '|';
+        for (int j = 0; j < sizeW; j++)
+        {
+            if (i == X && j == Y) // spausdiname rodykle
+            {
+                cout << arrow;
+            }
+            else if (area[i][j] == shipStart || area[i][j] == shipEnd || area[i][j] == shipBody) // nespausdiname nepazeisto laivo
+            {
+                cout << empty;
+            }
+            else
+            {
+                cout << area[i][j];
+            }
+        }
+        cout << '|' << endl;
+    }
+    printGround();
+}
+void chooseTarget(char area[sizeL][sizeW], int &points /* iš kurio atiminėsime taškus */, int shooter /* kas šaudo */)
+{
+    hold(shooter);
+
+    int action = keyError;
+    int X = 0, Y = 0;
+    while (action != keyEnter)
+    {
+        printInGame(area, X, Y);
+        signal();
+        if (action == keyUp && X > 0)
+        {
+            X -= 1;
+        }
+        else if (action == keyDown && X < sizeW)
+        {
+            X += 1;
+        }
+        else if (action == keyRight && Y < sizeL)
+        {
+            Y += 1;
+        }
+        else if (action == keyLeft && Y > 0)
+        {
+            Y -= 1;
+        }
+        else if (action == keyEnter)
+        {
+            // TODO shoot
+        }
+    }
+}
 int main()
 {
     char Player1[sizeL][sizeW], Player2[sizeL][sizeW];
+    int Points1 = 24, Points2 = 24; // pradedama su 24 taškais
+    
+    // lentų užpildymas
     fillWithEmpty(Player1);
     //fillWithEmpty(Player2);
+
+    // laivų sustatymas
     setUp(Player1, 1);
     //setUp(Player2, 2);
+    
     return 0;
 }
