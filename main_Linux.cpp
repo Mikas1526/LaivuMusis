@@ -11,7 +11,7 @@ int signal() // fiksuoja klaviatūros paspaudimus
 {
     char code;
     code = _getche();
-    if (code == 10) // enter
+    if (code == 10) // enter (13 for windows) 
         return keyEnter;
     else if (code == 32) // space
         return keySpace;
