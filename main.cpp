@@ -161,7 +161,7 @@ void setUp(char area[sizeL][sizeW], int which)
         {
             printSetUp(area, X, Y, lengths[i], vertical);
             action = signal();
-            if (action == keySpace)
+            if (action == keySpace && ((vertical && sizeL - Y >= lengths[i]) || (!vertical && sizeW - X >= lengths[i])))
             {
                 vertical = !vertical;
             }
