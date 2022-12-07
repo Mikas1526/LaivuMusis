@@ -122,7 +122,7 @@ void printSetUp(char area[sizeL][sizeW], int X, int Y, int length, bool vertical
 int dockShip(char area[sizeL][sizeW], int X, int Y, int length, bool vertical) // iraso laivo padeti (grazina -1, jeigu nepaejo, 0, jeigu paejo)
 {
     // TODO - patikrint, ar galima parkuoti laiva cia 
-    if (area[X][Y] != blank)    // windows versijai būtinai reikia naudoti blank o ne empty tai pat CLS ir enter=13
+   if (area[X][Y] != blank)
     {
         return keyError;
     }
@@ -334,7 +334,7 @@ int dockShip(char area[sizeL][sizeW], int X, int Y, int length, bool vertical) /
                 {
                     return keyError;
                 }
-                for (int i = Y - 1; i < X + length + 1; i++)
+                for (int i = Y - 1; i < Y + length + 1; i++)
                 {
                     if (area[X - 1][i] != blank)
                     {
@@ -350,7 +350,7 @@ int dockShip(char area[sizeL][sizeW], int X, int Y, int length, bool vertical) /
                 }
                 for (int i = Y - 1; i < Y + length + 1; i++)
                 {
-                    if (area[X + 1][i] != blank)
+                    if (area[X - 1][i] != blank)
                     {
                         return keyError;
                     }
