@@ -4,8 +4,8 @@
 using namespace std;
 
 const int sizeL = 12, sizeW = 12, keyError = -1, keyEnter = 0, keySpace = 1, keyUp = 2, keyDown = 3, keyRight = 4, keyLeft = 5;
-char const empty = '.', hurt = 'X', miss = 'O', arrow = '+', shipStart = '<', shipBody = '=', shipEnd = '>';
-
+const char empty = '.', hurt = 'X', miss = 'O', arrow = '+', shipStart = '<', shipBody = '=', shipEnd = '>';
+const string gotIt = "Pataikėte. Šaukite dar!", alreadyShot = "Čia jau šovėte", cantPark = "Negalima čia statyti laivo";
 // funkcijos, kurios visada reikalingos
 int signal() // fiksuoja klaviatūros paspaudimus
 {
@@ -183,15 +183,17 @@ void setUp(char area[sizeL][sizeW], int which)
             }
             else if (action == keyEnter)
             {
-                dockShip(area, X, Y, lengths[i], vertical);
+                action = dockShip(area, X, Y, lengths[i], vertical);
             }
         }
     }
 }
 
 // funkcijos, kurios reikalingos žaidimo eigai
-void printInGame(char area[sizeL][sizeW], int X, int Y)
+void printInGame(char area[sizeL][sizeW], int X, int Y, string message)
 {
+    system("clear"); // for Linux
+    //system("CLS"); // for Windows
     printGround();
     for (int i = 0; i < sizeL; i++)
     {
@@ -214,6 +216,17 @@ void printInGame(char area[sizeL][sizeW], int X, int Y)
         cout << '|' << endl;
     }
     printGround();
+    cout << message;
+}
+bool shoot(char area[sizeL][sizeW], int X, int Y) // grazina true, jeigu pataike
+{
+    if (area[X][Y] == shipBody || area[X][Y] == shipEnd || area[X][Y] == shipStart)
+    {
+        area[X][Y] = hurt;
+        return true;
+    }
+    area[X][Y] = miss;
+    return false;
 }
 void chooseTarget(char area[sizeL][sizeW], int &points /* iš kurio atiminėsime taškus */, int shooter /* kas šaudo */)
 {
@@ -221,10 +234,14 @@ void chooseTarget(char area[sizeL][sizeW], int &points /* iš kurio atiminėsime
 
     int action = keyError;
     int X = 0, Y = 0;
+    int result = -1; // koks šūvio rezultatas
+    string zinute = ""; // pranesimai prie lentos;
     while (action != keyEnter)
     {
-        printInGame(area, X, Y);
-        signal();
+        printInGame(area, X, Y, zinute);
+        zinute = "";
+        result = -1;
+        action = signal();
         if (action == keyUp && X > 0)
         {
             X -= 1;
@@ -243,9 +260,39 @@ void chooseTarget(char area[sizeL][sizeW], int &points /* iš kurio atiminėsime
         }
         else if (action == keyEnter)
         {
-            // TODO shoot
+            result = shoot(area, X, Y);
+            if (result == 1)
+            {
+                points--;
+                zinute = gotIt;
+                if (points == 0) // kazkas laimejo
+                {
+                    break;
+                }
+                action = keyError; // leidziama sauti dar
+                X = 0;
+                Y = 0;
+            }
+            else if (result == 2) // jau sove
+            {
+                zinute = alreadyShot;
+                action = keyError;
+            }
         }
     }
+}
+void gameEnd(int Points1, int Points2)
+{
+    cout << "Sveikiname žaidėją numeriu ";
+    if (Points1 == 0)
+    {
+        cout << "2";
+    }
+    else
+    {
+        cout << "1";
+    }
+    cout << endl << "Ačiū, kad žaidėte!" << endl << "VilniusTECH ITf-22 2022-12-09";
 }
 int main()
 {
@@ -254,11 +301,21 @@ int main()
     
     // lentų užpildymas
     fillWithEmpty(Player1);
-    //fillWithEmpty(Player2);
+    fillWithEmpty(Player2);
 
     // laivų sustatymas
     setUp(Player1, 1);
-    //setUp(Player2, 2);
+    setUp(Player2, 2);
     
+    while (Points1 != 0 && Points2 != 0)
+    {
+        chooseTarget(Player2, Points2, 1); // pradeda pirmas
+        if (Points2 == 0)
+            break;
+        chooseTarget(Player1, Points1, 2); // sauna antras
+        if (Points1 == 0)
+            break;
+    }
+    gameEnd(Points1, Points2);
     return 0;
 }
