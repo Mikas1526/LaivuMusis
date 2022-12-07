@@ -121,7 +121,288 @@ void printSetUp(char area[sizeL][sizeW], int X, int Y, int length, bool vertical
 }
 int dockShip(char area[sizeL][sizeW], int X, int Y, int length, bool vertical) // iraso laivo padeti (grazina -1, jeigu nepaejo, 0, jeigu paejo)
 {
-    // TODO - patikrint, ar galima parkuoti laiva cia
+    // TODO - patikrint, ar galima parkuoti laiva cia 
+    if (area[X][Y] != blank)    // windows versijai būtinai reikia naudoti blank o ne empty tai pat CLS ir enter=13
+    {
+        return keyError;
+    }
+    else if (vertical)
+    {
+        if (Y == 0) // Visos salygos pirmame stulpelyje vertikaliai
+        {
+            if (X == 0) // salyga jeigu pirmoje eiluteje pirmamame stulpelyje vertikaliai
+            {
+                if (area[X + length][Y] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = X; i < X + length + 1; i++)
+                {
+                    if (area[i][Y + 1] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else if (X == sizeL - length)          //salyga jeigu pirmamame stulpelyje ir paskutine galima eilute laivo pradziai
+            {
+                if (area[X - 1][Y] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = X - 1; i < X + length; i++)
+                {
+                    if (area[i][Y + 1] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else                               // salyga jei tarp pirmu dvieju salygu
+            {
+                if (area[X + length][Y] != blank || area[X - 1][Y] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = X - 1; i < X + length + 1; i++)
+                {
+                    if (area[i][Y + 1] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+        }
+        else if (Y == sizeW - 1)                     // visos salygos paskutiniame stulpelyje vertikaliai
+        {
+            if (X == 0)                          // salyga jeigu pirmoje eiluteje paskutiniame stulpelyje vertikaliai
+            {
+                if (area[X + length][Y] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = X; i < X + length; i++)
+                {
+                    if (area[i][Y - 1] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else if (X == sizeL - length)            //salyga jeigu paskutiniame stulpelyje ir paskutineje galimoje eiluteje laivo pradziai(lenghth)
+            {
+                if (area[X - 1][Y] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = X - 1; i < X + length; i++)
+                {
+                    if (area[i][Y - 1] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else                            // tarp pirmos ir paskutines eilutes paskutiniame stulpelyje 
+            {
+                if (area[X + length][Y] != blank || area[X - 1][Y] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = X - 1; i < X + length + 1; i++)
+                {
+                    if (area[i][Y - 1] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+        }
+        else                          // Tarp pirmo ir paskutinio stulpelio visos salygos vertiklaiai
+        {
+            if (X == 0)                  // tarp pirmo ir paskutinio stulpelio ir pradzia pirma eilute
+            {
+                if (area[X + length][Y] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = X; i < X + length + 1; i++)
+                {
+                    if (area[i][Y + 1] != blank || area[i][Y - 1] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else if (X == sizeL - length)            // jei stulpelis tarp pirmo ir paskutinio ir paskutine leidziama eilute laivo pradziai
+            {
+                if (area[X - 1][Y] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = X - 1; i < X + length; i++)
+                {
+                    if (area[i][Y + 1] != blank || area[i][Y - 1] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else                                // jei Stulpelis tarp pirmo ir paskutino ir eilute tarp pirmo ir paskutinio
+            {
+                if (area[X + length][Y] != blank || area[X - 1][Y] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = X - 1; i < X + length + 1; i++)
+                {
+                    if (area[i][Y - 1] != blank || area[i][Y + 1] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+        }
+
+    }
+    else   // Horizontaliai
+    {
+        if (X == 0) // pirma eilute 
+        {
+            if (Y == 0) // pirmas stulpelis - pradzia
+            {
+                if (area[X][Y + length] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = Y; i < Y + length + 1; i++)
+                {
+                    if (area[X + 1][i] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else if (Y == sizeL - length)    // paskutinis galimas stulpelis laivo dydziui - prdzia
+            {
+                if (area[X][Y - 1] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = Y; i < Y + length + 1; i++)
+                {
+                    if (area[X + 1][i] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else                        // Tarp paskutuinio ir pirmo stulpelio pirmoje eiluteje
+            {
+                if (area[X][Y - 1] != blank || area[X][Y + length] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = Y - 1; i < Y + length + 1; i++)
+                {
+                    if (area[X + 1][i] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+        }
+        else if (X == sizeL - 1)
+        {
+            if (Y == 0)
+            {
+                if (area[X][Y + length] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = Y; i < Y + length + 1; i++)
+                {
+                    if (area[X - 1][i] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else if (Y == sizeL - length)
+            {
+                if (area[X][Y - 1] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = Y - 1; i < X + length + 1; i++)
+                {
+                    if (area[X - 1][i] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else
+            {
+                if (area[X][Y - 1] != blank || area[X][Y + length] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = Y - 1; i < Y + length + 1; i++)
+                {
+                    if (area[X + 1][i] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (Y == 0)                  // tarp pirmo ir paskutinio stulpelio ir pradzia pirma eilute
+            {
+                if (area[X][Y + length] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = Y; i < Y + length + 1; i++)
+                {
+                    if (area[X - 1][i] != blank || area[X + 1][i] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else if (Y == sizeL - length)            // jei stulpelis tarp pirmo ir paskutinio ir paskutine leidziama eilute laivo pradziai
+            {
+                if (area[X][Y - 1] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = Y - 1; i < Y + length + 1; i++)
+                {
+                    if (area[X + 1][i] != blank || area[X - 1][Y] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+            else                                // jei Stulpelis tarp pirmo ir paskutino ir eilute tarp pirmo ir paskutinio
+            {
+                if (area[X][Y - 1] != blank || area[X][Y + length] != blank)
+                {
+                    return keyError;
+                }
+                for (int i = Y - 1; i < Y + length + 1; i++)
+                {
+                    if (area[X - 1][i] != blank || area[X + 1][i] != blank)
+                    {
+                        return keyError;
+                    }
+                }
+            }
+        }
+    }
     area[X][Y] = shipStart;
     if (vertical)
     {
