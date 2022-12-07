@@ -218,15 +218,19 @@ void printInGame(char area[sizeL][sizeW], int X, int Y, string message)
     printGround();
     cout << message;
 }
-bool shoot(char area[sizeL][sizeW], int X, int Y) // grazina true, jeigu pataike
+int shoot(char area[sizeL][sizeW], int X, int Y) // grazina true, jeigu pataike
 {
     if (area[X][Y] == shipBody || area[X][Y] == shipEnd || area[X][Y] == shipStart)
     {
         area[X][Y] = hurt;
-        return true;
+        return 1;
+    }
+    else if (area[X][Y] == miss || area[X][Y] == hurt)
+    {
+        return 2;
     }
     area[X][Y] = miss;
-    return false;
+    return 0;
 }
 void chooseTarget(char area[sizeL][sizeW], int &points /* iš kurio atiminėsime taškus */, int shooter /* kas šaudo */)
 {
@@ -246,11 +250,11 @@ void chooseTarget(char area[sizeL][sizeW], int &points /* iš kurio atiminėsime
         {
             X -= 1;
         }
-        else if (action == keyDown && X < sizeW)
+        else if (action == keyDown && X < sizeW - 1)
         {
             X += 1;
         }
-        else if (action == keyRight && Y < sizeL)
+        else if (action == keyRight && Y < sizeL - 1)
         {
             Y += 1;
         }
@@ -281,7 +285,7 @@ void chooseTarget(char area[sizeL][sizeW], int &points /* iš kurio atiminėsime
         }
     }
 }
-void gameEnd(int Points1, int Points2)
+void gameEnd(int Points1)
 {
     cout << "Sveikiname žaidėją numeriu ";
     if (Points1 == 0)
@@ -292,7 +296,7 @@ void gameEnd(int Points1, int Points2)
     {
         cout << "1";
     }
-    cout << endl << "Ačiū, kad žaidėte!" << endl << "VilniusTECH ITf-22 2022-12-09";
+    cout << "\nAčiū, kad žaidėte!\nVilniusTECH ITf-22 2022-12-09";
 }
 int main()
 {
@@ -316,6 +320,6 @@ int main()
         if (Points1 == 0)
             break;
     }
-    gameEnd(Points1, Points2);
+    gameEnd(Points1);
     return 0;
 }
