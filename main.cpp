@@ -70,10 +70,10 @@ map<const Size, const unsigned short> fieldSize
 map<const unsigned short, const unsigned short> shipSettings
 {
 	// length of the ship - how many
-	{ 5, 1 },
+	{ 5, 1 }/*,
 	{ 4, 1 },
 	{ 3, 3 },
-	{ 2, 3 }
+	{ 2, 3 }*/
 };
 
 // return what key on keyboard was pressed
@@ -174,32 +174,56 @@ protected:
 	{
 		if (vertical)
 		{
-			// checking
-			if (
-				// the top
-				(area[row - 1][collumn] != Block::Untouched && row - 1 >= 0) || // top
-				(area[row - 1][collumn - 1] != Block::Untouched && row - 1 >= 0 && collumn - 1 >= 0) || // top left
-				(area[row - 1][collumn + 1] != Block::Untouched && row - 1 >= 0 && collumn + 1 < fieldSize[ Size::Width ]) || // top right
-				(area[row][collumn - 1] != Block::Untouched && collumn - 1 >= 0) || // left
-				(area[row][collumn + 1] != Block::Untouched && row - 1 >= 0 && collumn + 1 < fieldSize[ Size::Width ]) || // right
-
-				// the bottom
-				(area[row + length][collumn] != Block::Untouched && row + length < fieldSize[ Size::Height ]) || // bottom
-				(area[row + length][collumn + 1] != Block::Untouched && row + length < fieldSize[ Size::Height ] && collumn + 1 < fieldSize[ Size::Width ]) || // bottom right
-				(area[row + length][collumn - 1] != Block::Untouched && row + length < fieldSize[ Size::Height ] && collumn - 1 >= 0) || // bottom left
-				(area[row + length - 1][collumn - 1] != Block::Untouched && collumn - 1 >= 0) || // left
-				(area[row + length - 1][collumn + 1] != Block::Untouched && collumn + 1 < fieldSize[ Size::Width ]) // right
-			)
-				return false;
-			// the body
-			for (short i = row + 1; i < length - 1; i++)
-				if (
-					(area[i][collumn + 1] != Block::Untouched && collumn + 1 < fieldSize[ Size::Width ]) || // right
-					(area[i][collumn - 1] != Block::Untouched && collumn - 1 >= 0) // left
-				)
+			// THE TOP
+			if (row - 1 >= 0)
+			{
+				if (area[row - 1][collumn] != Block::Untouched) // top
+					return false;
+				if (collumn - 1 >= 0)
+					if (area[row - 1][collumn - 1] != Block::Untouched) // top left
+						return false;
+				if (collumn + 1 < fieldSize[ Size::Width ])
+					if (area[row - 1][collumn + 1] != Block::Untouched) // top right
+						return false;
+			}
+			if (collumn - 1 >= 0)
+				if (area[row][collumn - 1] != Block::Untouched) // left
+					return false;
+			if (collumn + 1 < fieldSize[ Size::Width ]) // right
+				if (area[row][collumn + 1])
 					return false;
 
-			// wharf
+			// THE BOTTOM
+			if (row + length < fieldSize[ Size::Height ])
+			{
+				if (area[row + length][collumn] != Block::Untouched) // bottom
+					return false;
+				if (collumn + 1 < fieldSize[ Size::Width ])
+					if (area[row + length][collumn + 1])// bottom right
+						return false;
+				if (collumn - 1 >= 0)
+					if (area[row + length][collumn - 1] != Block::Untouched) // bottom left
+						return false;
+			}
+			if (collumn - 1 >= 0)
+				if (area[row + length - 1][collumn - 1] != Block::Untouched) // left
+					return false;
+			if (collumn + 1 < fieldSize[ Size::Width ])
+				if (area[row + length - 1][collumn + 1] != Block::Untouched) // right
+					return false;
+			
+			// THE BODY
+			for (short i = row + 1; i < length - 1; i++)
+			{
+				if (collumn + 1 < fieldSize[ Size::Width ])
+					if (area[i][collumn + 1] != Block::Untouched) // right
+						return false;
+				if (collumn - 1 >= 0)
+					if (area[i][collumn - 1] != Block::Untouched) // left
+						return false;
+			}
+
+			// WHARF
 			area[row][collumn] = Block::Top;
 			area[row + length - 1][collumn] = Block::Bottom;
 			for (short i = row + 1; i < i < length - 1; i++)
@@ -209,31 +233,56 @@ protected:
 		}
 		else
 		{
-			// checking
-			if (
-				// the left
-				(area[row][collumn - 1] != Block::Untouched && collumn >= 0) || // left
-				(area[row - 1][collumn - 1] != Block::Untouched && row - 1 >= 0 && collumn >= 0) || // left top
-				(area[row + 1][collumn - 1] != Block::Untouched && row + 1 < fieldSize[ Size::Height ] && collumn >= 0) || // left bottom
-				(area[row - 1][collumn] != Block::Untouched && row - 1 >= 0) || // top
-				(area[row + 1][collumn] != Block::Untouched && row + 1 < fieldSize[ Size::Height ]) || // bottom
-
-				// the right
-				(area[row][collumn + length] != Block::Untouched && collumn + length < fieldSize[ Size::Width ]) || // right
-				(area[row - 1][collumn + length] != Block::Untouched && row - 1 >= 0 && collumn + length < fieldSize[ Size::Width ]) || // right top
-				(area[row + 1][collumn + length] != Block::Untouched && row + 1 < fieldSize[ Size::Height ] && collumn + length < fieldSize[ Size::Width ]) || // right bottom
-				(area[row - 1][collumn + length - 1] != Block::Untouched && row - 1 >= 0) || // top
-				(area[row + 1][collumn + length - 1] != Block::Untouched && row + 1 < fieldSize[ Size::Height ]) // bottom
-			)
-				return false;
-			for (short j = collumn + 1; j < length - 1; j++)
-				if (
-					(area[row - 1][j] != Block::Untouched && row - 1 >= 0) || // top
-					(area[row + 1][j] != Block::Untouched && row + 1 < fieldSize[ Size::Height ]) // bottom
-				)
+			// THE LEFT
+			if (collumn >= 0)
+			{
+				if (area[row][collumn - 1] != Block::Untouched) // left
+					return false;
+				if (row - 1 >= 0)
+					if (area[row - 1][collumn - 1] != Block::Untouched) // left top
+						return false;
+				if (row + 1 < fieldSize[ Size::Height ])
+					if (area[row + 1][collumn - 1] != Block::Untouched) // left bottom
+						return false;
+			}
+			if (row - 1 >= 0)
+				if (area[row - 1][collumn] != Block::Untouched) // top
+					return false;
+			if (row + 1 < fieldSize[ Size::Height ])
+				if (area[row + 1][collumn] != Block::Untouched) // bottom
 					return false;
 
-			// wharf
+			// THE RIGHT
+			if (collumn + length < fieldSize[ Size::Width ])
+			{
+				if (area[row][collumn + length] != Block::Untouched) // right
+					return false;
+				if (row - 1 >= 0)
+					if (area[row - 1][collumn + length] != Block::Untouched) // right top
+						return false;
+				if (row + 1 < fieldSize[ Size::Height ])
+					if (area[row + 1][collumn + length] != Block::Untouched) // right bottom
+						return false;
+			}
+			if (row - 1 >= 0)
+				if (area[row - 1][collumn + length - 1])
+					return false;
+			if (row + 1 < fieldSize[ Size::Height ])
+				if (area[row + 1][collumn + length - 1])
+					return false;
+
+			// THE BODY
+			for (short j = collumn + 1; j < length - 1; j++)
+			{
+				if (row - 1 >= 0)
+					if (area[row - 1][j] != Block::Untouched) // top
+						return false;
+				if (row + 1 < fieldSize[ Size::Height ])
+					if (area[row + 1][j] != Block::Untouched) // bottom
+						return false;
+			}
+
+			// WHARF
 			area[row][collumn] = Block::Left;
 			area[row + length - 1][collumn] = Block::Right;
 			for (short j = collumn + 1; j < length - 1; j++)
@@ -281,6 +330,7 @@ public:
 	Enemy()
 	{
 		createArea();
+
 	}
 	void getArea(/* coordinates of the target mark */ short row = -1, short collumn = -1) const
 	{
@@ -292,7 +342,7 @@ public:
 			cout << field[Block::Left];
 			for (unsigned short j = 0; j < fieldSize[Size::Width]; j++)
 			{
-				if (row == i && collumn == j)
+				/*if (row == i && collumn == j)
 				{
 					cout << field[Block::Target];
 				}
@@ -309,7 +359,8 @@ public:
 						cout << field[Block::Untouched];
 						break;
 					}
-				}
+				}*/
+				cout << field[area[i][j]];
 			}
 			cout << field[Block::Right] << endl;
 		}
@@ -320,8 +371,38 @@ public:
 	{
 		// settings for each ship
 		unsigned short row, collumn;
-		bool vertical;
-		
+		bool vertical = true;
+
+		// going through shipSettings
+		auto shipS = shipSettings.begin();
+		unsigned short howMany = 0;
+		while (shipS != shipSettings.end())
+		{
+			if (howMany == 0)
+				howMany = shipS->second;
+
+			// generating numbers
+			if (vertical)
+			{
+				row = rand() % fieldSize [ Size::Height ] - shipS->first + 1;
+				collumn = rand() % fieldSize[ Size::Width ];
+			}
+			else
+			{
+				row = rand() % fieldSize [ Size::Height ];
+				collumn = rand() % fieldSize[ Size::Width ] - shipS->first + 1;
+			}
+
+			// trying to wharf a ship
+			if (wharfShip(row, collumn, vertical, shipS->first))
+			{
+				howMany--;
+				cout << "paejo" << endl;
+			}
+
+			if (howMany == 0)
+				shipS++;
+		}
 	}
 };
 
@@ -333,6 +414,7 @@ int main()
 	// set up
 	Player player;
 	Enemy enemy;
+	enemy.setUpArea();
 	// play
 	enemy.getArea();
 	player.getArea();
