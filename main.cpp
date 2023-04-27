@@ -116,6 +116,16 @@ class Seaman
 {
 protected:
 	Block** area;
+	string message = "";
+
+	struct shipPar
+	{
+		unsigned short row, collumn, length;
+		bool vertical;
+		shipPar(): row(0), collumn(0), length(0), vertical(false) { }
+		shipPar(unsigned short _l): row(0), collumn(0), length(_l), vertical(false) { }
+		shipPar(unsigned short _r, unsigned short _c, unsigned short _l, bool _v): row(_r), collumn(_c), length(_l), vertical(_v) { }
+	};
 	
 	void createArea()
 	{
@@ -300,7 +310,7 @@ public:
 	{
 		createArea();
 	}
-	void getArea(/* ship settings while wharfing */ short row = -1, short collumn = -1, bool vertical = false, short length = -1) const
+	void getArea(/* ship settings while wharfing */ shipPar S = shipPar())
 	{
 		printUpperEdge("You");
 
@@ -309,18 +319,125 @@ public:
 		{
 			cout << field[Block::Left];
 
-			// TODO ship whraf
 			for (unsigned short j = 0; j < fieldSize[Size::Width]; j++)
-				cout << field[area[i][j]];
-
+			{
+				if (S.length == 0)
+					cout << field[area[i][j]];
+				else
+				{
+					if (S.vertical)
+					{
+						if (S.collumn == j)
+						{
+							if (S.row == i)
+								cout << ship[Block::Top];
+							else if (S.row == i - S.length + 1)
+								cout << ship[Block::Bottom];
+							else if (i > S.row && i < S.row + S.length - 1)
+								cout << ship[Block::VerticalBody];
+							else
+								cout << field[area[i][j]];
+						}
+						else
+							cout << field[area[i][j]];
+					}
+					else
+					{
+						if (S.row == i)
+						{
+							if (S.collumn == j)
+								cout << ship[Block::Left];
+							else if (S.collumn == j - S.length + 1)
+								cout << ship[Block::Right];
+							else if (j > S.collumn && j < S.collumn + S.length - 1)
+								cout << ship[Block::HorizontalBody];
+							else
+								cout << field[area[i][j]];
+						}
+						else
+							cout << field[area[i][j]];
+					}
+				}
+			}
 			cout << field[Block::Right] << endl;
 		}
 		
 		printBottomEdge();
+
+		cout << message << endl;
 	}
 	void setUpArea()
 	{
-		//TODO
+		shipPar S;
+
+		// going through ship settings
+		auto shipS = shipSettings.begin();
+		unsigned short howMany = 0;
+
+		Key action = Key::None;
+		while(shipS != shipSettings.end())
+		{
+			if (howMany == 0)
+			{
+				howMany = shipS->second;
+				S = shipPar(shipS->first);
+			}
+			while (action != Key::Enter)
+			{
+				system("clear");
+				getArea(S);
+
+				action = onPressKey();
+				// Key Left
+				if (
+					action == Key::East && (
+						(S.vertical && S.collumn + 1 < fieldSize[Size::Width]) ||
+						(!S.vertical && S.collumn + S.length < fieldSize[Size::Width])
+					)
+				)
+				{
+					S.collumn += 1;
+				}
+				// Key Down
+				else if (
+					action == Key::Down && (
+						(!S.vertical && S.row + 1 < fieldSize[Size::Height]) ||
+						(S.vertical && S.row + S.length < fieldSize[Size::Height])
+					)
+				)
+				{
+					S.row += 1;
+				}
+				else if (action == Key::West && S.collumn > 0)
+				{
+					S.collumn -= 1;
+				}
+				else if (action == Key::Up && S.row > 0)
+				{
+					S.row -= 1;
+				}
+				else if (action == Key::Space)
+				{
+					if (S.vertical && S.collumn > fieldSize[Size::Width] - S.length - 1)
+					{
+						S.collumn = fieldSize[Size::Width] - S.length;
+					}
+					else if (!S.vertical && S.row > fieldSize[Size::Height] - S.length - 1)
+					{
+						S.row = fieldSize[Size::Height] - S.length;
+					}
+					S.vertical = !S.vertical;
+				}
+				else if (action == Key::Enter)
+				{
+					if (!wharfShip(S.row, S.collumn, S.vertical, shipS->first))
+					{
+						action = Key::None;
+						message = "You cannot wharf your ship here";
+					}
+				}
+			}
+		}
 	}
 };
 
@@ -367,7 +484,7 @@ public:
 		
 		printBottomEdge();
 	}
-	void setUpArea()
+	void setUpArea() // TODO
 	{
 		// settings for each ship
 		unsigned short row, collumn;
@@ -414,10 +531,12 @@ int main()
 	// set up
 	Player player;
 	Enemy enemy;
-	enemy.setUpArea();
+	player.setUpArea();
+	//enemy.setUpArea();
+
 	// play
-	enemy.getArea();
-	player.getArea();
+	//enemy.getArea();
+	//player.getArea();
 	// end
 
 
