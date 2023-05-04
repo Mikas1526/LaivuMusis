@@ -26,6 +26,14 @@ enum Size
 {
 	Width, Height
 };
+enum Quarter
+{
+	I = 1, II = 2, III = 3, IV = 4
+};
+enum ShotResult
+{
+	AlreadyShot, Missed, Bullseye
+};
 
 // DISPLAY SETTINGS
 // field
@@ -63,8 +71,8 @@ const short maxMessageShowTime = 5;
 // field size
 map<const Size, const unsigned short> fieldSize
 {
-	{ Size::Height, 12},
-	{ Size::Width, 24}
+	{ Size::Height, 12 },
+	{ Size::Width, 24 }
 };
 
 // settings of ships
@@ -138,7 +146,13 @@ class Seaman
 {
 protected:
 	Block** area;
+
+	string message;
+
 	short points;
+
+	// for shoot function recently shot coordinates
+	short rRow, rCollumn;
 
 	struct shipPar
 	{
@@ -350,27 +364,69 @@ protected:
 			return true;
 		}
 	}
+
+	ShotResult shoot(short row, short collumn)
+	{
+		switch (area[row][collumn])
+		{
+		case Block::Empty:
+		case Block::Shot:
+		case Block::RecentlyShot:
+			return ShotResult::AlreadyShot;
+			break;
+		case Block::Untouched:
+			if (rRow != -1 && rCollumn != -1)
+				area[rRow][rCollumn] = Block::Shot;
+			area[row][collumn] = Block::Empty;
+
+			return ShotResult::Missed;
+			break;
+		default:
+			if (rRow != -1 && rCollumn != -1)
+				area[rRow][rCollumn] = Block::Shot;
+			area[row][collumn] = Block::RecentlyShot;
+
+			rRow = row;
+			rCollumn = collumn;
+
+			points--;
+
+			return ShotResult::Bullseye;
+			break;
+		}
+	}
 public:
 	bool isBeaten()
 	{
 		return points == 0;
 	}
+
+	virtual void setUpArea() = 0;
+	virtual void getShot() = 0;
 };
 
 class Player : public Seaman
 {
 private:
-	string message;
+	// which quarter to shoot
+	// II  | I
+	// III | IV
+	Quarter quarter;
 public:
 	Player()
 	{
 		createArea();
 		setUpArea();
 		setPoints();
+
+		rRow = -1;
+		rCollumn = -1;
+
+		quarter = Quarter::I;
 	}
 	void getArea(/* ship settings while wharfing */ shipPar S = shipPar())
 	{
-		printUpperEdge("You");
+		printUpperEdge("Your field");
 
 		// mid
 		for (unsigned short i = 0; i < fieldSize[Size::Height]; i++)
@@ -533,6 +589,52 @@ public:
 			}
 		}
 	}
+	void getShot()
+	{
+		unsigned short row, collumn;
+		ShotResult rez;
+		do
+		{
+			switch (quarter)
+			{
+			case 1:
+				row = rand() % (fieldSize[Size::Height] / 2);
+				collumn = (rand() % (fieldSize[Size::Width] / 2)) + (fieldSize[Size::Width] / 2);
+				quarter = Quarter::II;
+			case 2:
+				row = rand() % (fieldSize[Size::Height] / 2);
+				collumn = rand() % (fieldSize[Size::Width] / 2);
+				quarter = Quarter::III;
+			case 3:
+				row = (rand() % (fieldSize[Size::Height] / 2)) + (fieldSize[Size::Height] / 2);
+				collumn = rand() % (fieldSize[Size::Width] / 2);
+				quarter = Quarter::IV;
+			case 4:
+				row = (rand() % (fieldSize[Size::Height] / 2)) + (fieldSize[Size::Height] / 2);
+				collumn = (rand() % (fieldSize[Size::Width] / 2)) + (fieldSize[Size::Width] / 2);
+				quarter = Quarter::I;
+			}
+			rez = shoot(row, collumn);
+		} while (rez == ShotResult::AlreadyShot);
+		
+		switch (rez)
+		{
+		case ShotResult::Missed:
+			message = "You got lucky!";
+			break;
+		case ShotResult::Bullseye:
+			message = "You got shot!";
+			break;
+		default:
+			message = "Something went wrong";
+			break;
+		}
+		clearTerminal();
+		message += "\nPress any key on keyboard to continue";
+		getArea();
+		
+		onPressKey();
+	}
 };
 
 class Enemy : public Seaman
@@ -543,10 +645,13 @@ public:
 		createArea();
 		setUpArea();
 		setPoints();
+
+		rRow = -1;
+		rCollumn = -1;
 	}
 	void getArea(/* coordinates of the target mark */ short row = -1, short collumn = -1) const
 	{
-		printUpperEdge("Enemy");
+		printUpperEdge("Enemy's field");
 
 		// mid
 		for (unsigned short i = 0; i < fieldSize[Size::Height]; i++)
@@ -554,15 +659,15 @@ public:
 			cout << field[Block::Left];
 			for (unsigned short j = 0; j < fieldSize[Size::Width]; j++)
 			{
-				if (showEnemeyShips)
+				if (row == i && collumn == j)
 				{
-					cout << field[area[i][j]];
+					cout << field[Block::Target];
 				}
 				else
 				{
-					if (row == i && collumn == j)
+					if (showEnemeyShips)
 					{
-						cout << field[Block::Target];
+						cout << field[area[i][j]];
 					}
 					else
 					{
@@ -584,6 +689,8 @@ public:
 		}
 		
 		printBottomEdge();
+
+		cout << message << endl;
 	}
 	void setUpArea()
 	{
@@ -636,6 +743,54 @@ public:
 			}
 		}
 	}
+	void getShot()
+	{
+		// where is the target
+		unsigned short row = 0, collumn = 0;
+		Key action = Key::None;
+		message = "";
+		while (action != Key::Enter)
+		{
+			clearTerminal();
+			getArea(row, collumn);
+
+			action = onPressKey();
+			
+			if (action == Key::Up && row > 0)
+				row--;
+
+			else if (action == Key::Down && row + 1 < fieldSize[Size::Height])
+				row++;
+
+			else if (action == Key::East && collumn + 1 < fieldSize[Size::Width])
+				collumn++;
+
+			else if (action == Key::West && collumn > 0)
+				collumn--;
+
+			else if (action == Key::Enter)
+			{
+				switch (shoot(row, collumn))
+				{
+				case ShotResult::Missed:
+					message = "You missed";
+					break;
+				case ShotResult::Bullseye:
+					message = "Nice shot!";
+					break;
+				default:
+					message = "You have already shot here";
+					action = Key::None;
+					break;
+				}
+			}
+		}
+		// show the result
+		clearTerminal();
+		message += "\nPress any key on keyboard to continue";
+		getArea();
+		onPressKey();
+	}
 };
 
 // global methods
@@ -652,11 +807,21 @@ int main()
 		// play
 		while (!(player.isBeaten() || enemy.isBeaten()))
 		{
-			enemy.getArea();
-			player.getArea();
+			if (!player.isBeaten())
+				enemy.getShot();
+			if (!enemy.isBeaten())
+				player.getShot();
 		}
 		
 		// end
+		if (player.isBeaten())
+		{
+			cout << "Better luck next time!" << endl;
+		}
+		else
+		{
+			cout << "Congrats!" << endl;
+		}
 	}
 	else
 	{
