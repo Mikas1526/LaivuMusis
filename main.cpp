@@ -57,6 +57,7 @@ map<const Block, const string> field
 	{ Block::VerticalBody, "║"}
 };
 bool showEnemeyShips = true;
+const short maxMessageShowTime = 5;
 
 // GAME SETTINGS
 // field size
@@ -117,12 +118,27 @@ void clearTerminal()
 	system("clear");
 }
 
+bool isItPlayable()
+{
+	// how many blocks are required
+	short requiredBlocks = 0;
+	for (auto shipS = shipSettings.begin(); shipS != shipSettings.end(); shipS++)
+	{
+		requiredBlocks += shipS->first * shipS->second;
+	}
+	requiredBlocks *= 3;
+	requiredBlocks += 6;
+
+	// can ships be fitted in field
+	return (fieldSize[Size::Width] + 1) * (fieldSize[Size::Height] + 1) >= requiredBlocks;
+}
+
 // classes
 class Seaman
 {
 protected:
 	Block** area;
-	string message = "";
+	short points;
 
 	struct shipPar
 	{
@@ -144,6 +160,15 @@ protected:
 			// fill up with untouched
 			for (int j = 0; j < fieldSize[Size::Width]; j++)
 				area[i][j] = Block::Untouched;
+		}
+	}
+
+	void setPoints()
+	{
+		points = 0;
+		for (auto shipS = shipSettings.begin(); shipS != shipSettings.end(); shipS++)
+		{
+			points += shipS->first * shipS->second;
 		}
 	}
 
@@ -325,15 +350,23 @@ protected:
 			return true;
 		}
 	}
+public:
+	bool isBeaten()
+	{
+		return points == 0;
+	}
 };
 
 class Player : public Seaman
 {
+private:
+	string message;
 public:
 	Player()
 	{
 		createArea();
 		setUpArea();
+		setPoints();
 	}
 	void getArea(/* ship settings while wharfing */ shipPar S = shipPar())
 	{
@@ -400,6 +433,10 @@ public:
 		unsigned short howMany = 0;
 
 		Key action;
+
+		// message dissapear counter
+		short timeShowed = 0;
+
 		while(shipS != shipSettings.end())
 		{
 			action = Key::None;
@@ -427,7 +464,12 @@ public:
 			while (action != Key::Enter)
 			{
 				clearTerminal();
+				
+				if (timeShowed == maxMessageShowTime)
+					message = "";
+
 				getArea(S);
+				
 				action = onPressKey();
 				// Key Left
 				if (
@@ -438,6 +480,7 @@ public:
 				)
 				{
 					S.collumn += 1;
+					timeShowed++;
 				}
 				// Key Down
 				else if (
@@ -448,14 +491,17 @@ public:
 				)
 				{
 					S.row += 1;
+					timeShowed++;
 				}
 				else if (action == Key::West && S.collumn > 0)
 				{
 					S.collumn -= 1;
+					timeShowed++;
 				}
 				else if (action == Key::Up && S.row > 0)
 				{
 					S.row -= 1;
+					timeShowed++;
 				}
 				else if (action == Key::Space)
 				{
@@ -468,6 +514,7 @@ public:
 						S.row = fieldSize[Size::Height] - S.length;
 					}
 					S.vertical = !S.vertical;
+					timeShowed++;
 				}
 				else if (action == Key::Enter)
 				{
@@ -479,8 +526,9 @@ public:
 					else
 					{
 						howMany--;
-						message = "";
+						message = "Ship has been wharfed";
 					}
+					timeShowed = 0;
 				}
 			}
 		}
@@ -494,6 +542,7 @@ public:
 	{
 		createArea();
 		setUpArea();
+		setPoints();
 	}
 	void getArea(/* coordinates of the target mark */ short row = -1, short collumn = -1) const
 	{
@@ -570,13 +619,10 @@ public:
 				S.row = rand() % fieldSize [ Size::Height ];
 				S.collumn = rand() % (fieldSize[ Size::Width ] - S.length);
 			}
-
-			cout << S.row << " " << S.collumn << endl;
 			// trying to wharf a ship
 			if (wharfShip(S))
 			{
 				howMany--;
-				cout << "paejo" << endl;
 				attempts = 0;
 			}
 			else
@@ -595,17 +641,26 @@ public:
 // global methods
 int main()
 {
-	srand(time(0));
+	if (isItPlayable())
+	{
+		srand(time(0));
 
-	// set up
-	Player player;
-	Enemy enemy;
+		// set up
+		Player player;
+		Enemy enemy;
 
-	// play
-	enemy.getArea();
-	player.getArea();
-	// end
-
-
+		// play
+		while (!(player.isBeaten() || enemy.isBeaten()))
+		{
+			enemy.getArea();
+			player.getArea();
+		}
+		
+		// end
+	}
+	else
+	{
+		cout << "Field is too small for ships" << endl;
+	}
 	return 0;
 }
