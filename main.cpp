@@ -412,6 +412,52 @@ private:
 	// II  | I
 	// III | IV
 	Quarter quarter;
+
+	Quarter mostUntouchedQuarter()
+	{
+		unsigned short activity[4] = { 0, 0, 0, 0 };
+		
+		// counting activity
+		for (unsigned short i = 0; i < fieldSize[Size::Height]; ++i)
+		{
+			for (unsigned short j = 0; j < fieldSize[Size::Width]; ++j)
+			{
+				switch (area[i][j])
+				{
+				case Block::Shot:
+				case Block::RecentlyShot:
+				case Block::Empty:
+					// I quarter
+					if (i < fieldSize[Size::Height] / 2 && j >= fieldSize[Size::Width] / 2)
+						activity[0]++;
+					// II
+					else if (i < fieldSize[Size::Height] / 2 && j < fieldSize[Size::Width] / 2)
+						activity[1]++;
+					// III
+					else if (i >= fieldSize[Size::Height] / 2 && j < fieldSize[Size::Width] / 2)
+						activity[2]++;
+					// IV
+					else if (i >= fieldSize[Size::Height] / 2 && j >= fieldSize[Size::Width] / 2)
+						activity[3]++;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		// finding min
+		unsigned short minn = activity[0], whitch = 0;
+		for (unsigned short i = 0; i < 4; ++i)
+		{
+			if (activity[i] < minn)
+			{
+				minn = activity[i];
+				whitch = i;
+			}
+		}
+		return static_cast<Quarter>(whitch + 1);
+	}
 public:
 	Player()
 	{
@@ -595,28 +641,42 @@ public:
 		ShotResult rez;
 		do
 		{
+			// generate coordinates to shoot at
 			switch (quarter)
 			{
-			case 1:
+			case Quarter::I:
 				row = rand() % (fieldSize[Size::Height] / 2);
-				collumn = (rand() % (fieldSize[Size::Width] / 2)) + (fieldSize[Size::Width] / 2);
-				quarter = Quarter::II;
-			case 2:
+				collumn = (rand() % (fieldSize[Size::Width] / 2)) + (fieldSize[Size::Width] / 2 + 0.5);
+				break;
+			case Quarter::II:
 				row = rand() % (fieldSize[Size::Height] / 2);
 				collumn = rand() % (fieldSize[Size::Width] / 2);
-				quarter = Quarter::III;
-			case 3:
-				row = (rand() % (fieldSize[Size::Height] / 2)) + (fieldSize[Size::Height] / 2);
+				break;
+			case Quarter::III:
+				row = (rand() % (fieldSize[Size::Height] / 2)) + (fieldSize[Size::Height] / 2 + 0.5);
 				collumn = rand() % (fieldSize[Size::Width] / 2);
-				quarter = Quarter::IV;
-			case 4:
-				row = (rand() % (fieldSize[Size::Height] / 2)) + (fieldSize[Size::Height] / 2);
-				collumn = (rand() % (fieldSize[Size::Width] / 2)) + (fieldSize[Size::Width] / 2);
-				quarter = Quarter::I;
+				break;
+			case Quarter::IV:
+				row = (rand() % (fieldSize[Size::Height] / 2)) + (fieldSize[Size::Height] / 2 + 0.5);
+				collumn = (rand() % (fieldSize[Size::Width] / 2)) + (fieldSize[Size::Width] / 2 + 0.5);
+				break;
 			}
+
+			// try to shoot
 			rez = shoot(row, collumn);
+
+			if (rez == ShotResult::Missed)
+			{
+				if (quarter == static_cast<Quarter>(4))
+					quarter = static_cast<Quarter>(1);
+				else
+					quarter = static_cast<Quarter>( static_cast<int>(quarter) + 1 );
+				//quarter = mostUntouchedQuarter();
+			}
+
 		} while (rez == ShotResult::AlreadyShot);
 		
+		clearTerminal();
 		switch (rez)
 		{
 		case ShotResult::Missed:
@@ -629,10 +689,11 @@ public:
 			message = "Something went wrong";
 			break;
 		}
-		clearTerminal();
-		message += "\nPress any key on keyboard to continue";
-		getArea();
+		message += "\nPress any key on keyboard to continue\n";
 		
+		message += to_string(row) + " " + to_string(collumn) + " " + to_string(static_cast<int>(quarter));
+		
+		getArea();
 		onPressKey();
 	}
 };
@@ -703,7 +764,7 @@ public:
 		auto shipS = shipSettings.begin();
 		unsigned short howMany = 0;
 
-		while (shipS != shipSettings.end())
+		while (!(shipS == shipSettings.end() && howMany == 0))
 		{
 			if (howMany == 0)
 			{
@@ -798,7 +859,7 @@ int main()
 {
 	if (isItPlayable())
 	{
-		srand(time(0));
+		srand(time(NULL));
 
 		// set up
 		Player player;
