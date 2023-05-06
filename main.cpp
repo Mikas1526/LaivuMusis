@@ -1,3 +1,17 @@
+//             _____
+//   /|       /     |
+//  / |      /__    |
+// | M|          |I |
+// | i|          |T |
+// | k|          |f |
+// | a|          |2 |
+//  \s|          |2/
+//   \|__________|/
+//    \Alisauskas/
+//     \________/
+// https://github.com/Mikas1526/LaivuMusis
+
+
 #include <iostream>
 #include <conio.h>
 #include <map>
@@ -664,42 +678,62 @@ public:
 
 			// try to shoot
 			rez = shoot(row, collumn);
-
-			if (rez == ShotResult::Missed)
+			switch (rez)
 			{
-				if (quarter == static_cast<Quarter>(4))
-					quarter = static_cast<Quarter>(1);
-				else
-					quarter = static_cast<Quarter>( static_cast<int>(quarter) + 1 );
-				//quarter = mostUntouchedQuarter();
-			}
+			case ShotResult::Missed:
+				// change quarter
+				if (rez == ShotResult::Missed)
+					quarter = mostUntouchedQuarter();
+				clearTerminal();
+				message = "You're lucky!\nPress any key on keyboard to continue";
+				getArea();
+				onPressKey();
+				break;
+			case ShotResult::Bullseye:
+				clearTerminal();
+				message = "You've got shot!";
+				
+				if (!isBeaten())
+				{
+					rez = ShotResult::AlreadyShot;
+					message = "Enemy is hitting you again!";
+				}
 
+				message += "\nPress any key on keyboard to continue\n";
+				getArea();
+				onPressKey();
+				
+				break;
+			default:
+				break;
+			}
 		} while (rez == ShotResult::AlreadyShot);
-		
-		clearTerminal();
-		switch (rez)
-		{
-		case ShotResult::Missed:
-			message = "You got lucky!";
-			break;
-		case ShotResult::Bullseye:
-			message = "You got shot!";
-			break;
-		default:
-			message = "Something went wrong";
-			break;
-		}
-		message += "\nPress any key on keyboard to continue\n";
-		
-		message += to_string(row) + " " + to_string(collumn) + " " + to_string(static_cast<int>(quarter));
-		
-		getArea();
-		onPressKey();
 	}
 };
 
 class Enemy : public Seaman
 {
+private:
+	void findFirstUntouched(unsigned short &row, unsigned short &collumn)
+	{
+		for (int i = 0; i < fieldSize[Size::Height]; ++i)
+		{
+			for (int j = 0; j < fieldSize[Size::Width]; ++j)
+			{
+				switch (area[i][j])
+				{
+				case Block::Shot:
+				case Block::RecentlyShot:
+				case Block::Empty:
+					break;
+				default:
+					row = i;
+					collumn = j;
+					return;
+				}
+			}
+		}
+	}
 public:
 	Enemy()
 	{
@@ -807,9 +841,11 @@ public:
 	void getShot()
 	{
 		// where is the target
-		unsigned short row = 0, collumn = 0;
+		unsigned short row, collumn;
 		Key action = Key::None;
 		message = "";
+		
+		findFirstUntouched(row, collumn);
 		while (action != Key::Enter)
 		{
 			clearTerminal();
@@ -838,6 +874,11 @@ public:
 					break;
 				case ShotResult::Bullseye:
 					message = "Nice shot!";
+					if (!isBeaten())
+					{
+						message += "\nYou shall shoot again!";
+						action = Key::None;
+					}
 					break;
 				default:
 					message = "You have already shot here";
