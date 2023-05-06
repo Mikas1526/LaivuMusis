@@ -1,7 +1,7 @@
 # Laivų mūšis
 ## Įvadas ir taisyklės
 Laivų mūšis – 2 dalyvių (jūsų ir kompiuterio) žaidimas, kuriame kiekvienas iš žaidėjų turi savo vandeninę erdvę, kurioje turi prišvartuoti savo laivus, ir apšaudyti priešininko teritoriją tam, kad susprogdintų priešo laivus. Pirmasis žaidėjas, susprogdinęs visus priešininko laivus, laimi.
-- Kiekvienas žaidėjas savo teritorijoje, kurios dydis yra 12x12 langelių, turi sustatyti laivus:
+- Kiekvienas žaidėjas savo teritorijoje, kurios dydis yra 12x24 langelių, turi sustatyti laivus:
 
 Laivo ilgis langeliais|Laivų kiekis
 -|-
