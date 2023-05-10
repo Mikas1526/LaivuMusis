@@ -24,7 +24,7 @@ using namespace std;
 // enums
 enum Key
 {
-	Enter, Space, Up, Down, East, West, None
+	Enter, Space, Up, Down, East, West, Help, None
 };
 enum Block
 {
@@ -32,7 +32,7 @@ enum Block
 	TopLeft, Left, TopRight, Right, Top, BottomLeft, BottomRight, Bottom,
 	// body
 	Shot, RecentlyShot, Empty, Untouched,
-	Target,
+	Target, Suggestion,
 	// ship
 	HorizontalBody, VerticalBody, ShipTop, ShipBottom, ShipRight, ShipLeft
 };
@@ -69,6 +69,7 @@ map<const Block, const string> field
 	{ Block::Shot, "▓" },
 	{ Block::RecentlyShot, "█" },
 	{ Block::Target, "+" },
+	{ Block::Suggestion, "X" },
 
 	// ship
 	{ Block::ShipTop, "╥" },
@@ -128,6 +129,8 @@ Key onPressKey()
 	case 68: // arrow left
 		return Key::West;
 		break;
+	case 'h':
+		return Key::Help;
 	default:
 		return Key::None;
 		break;
@@ -151,8 +154,10 @@ bool isItPlayable()
 	requiredBlocks *= 3;
 	requiredBlocks += 6;
 
+	unsigned short maxShipLenght = shipSettings.rbegin()->first;
 	// can ships be fitted in field
-	return (fieldSize[Size::Width] + 1) * (fieldSize[Size::Height] + 1) >= requiredBlocks;
+	return (fieldSize[Size::Width] + 1) * (fieldSize[Size::Height] + 1) >= requiredBlocks &&
+	(maxShipLenght <= fieldSize[Size::Height] || maxShipLenght <= fieldSize[Size::Width]);
 }
 
 // classes
@@ -203,7 +208,7 @@ protected:
 	// functions for getArea
 	void printUpperEdge(string Title = "") const
 	{
-		unsigned short topsBeforeTitle, topsAfterTitle;
+		short topsBeforeTitle, topsAfterTitle;
 		if ((fieldSize[Size::Width] - Title.size()) % 2 == 0)
 		{
 			topsBeforeTitle = (fieldSize[Size::Width] - Title.size()) / 2;
@@ -409,14 +414,14 @@ protected:
 			break;
 		}
 	}
+
+	virtual void setUpArea() = 0;
+	virtual void getShot() = 0;
 public:
 	bool isBeaten()
 	{
 		return points == 0;
 	}
-
-	virtual void setUpArea() = 0;
-	virtual void getShot() = 0;
 };
 
 class Player : public Seaman
@@ -472,18 +477,180 @@ private:
 		}
 		return static_cast<Quarter>(whitch + 1);
 	}
-public:
-	Player()
+	/*
+	struct shipHunter
 	{
-		createArea();
-		setUpArea();
-		setPoints();
+	private:
+		unsigned short centerRow, centerCollumn; // first spot that was shot
+		Key direction;
+		bool firstEdgeHitted;
+	unsigned short freeSpaceFromPoint(unsigned short startRow, unsigned short startCol, Key direction)
+	{
+		unsigned short freeSpace = 0;
+		
+		if (
+			startRow < 0 || startRow >= fieldSize[Size::Height] ||
+			startCol < 0 || startCol >= fieldSize[Size::Width]
+			)
+			return freeSpace;
 
-		rRow = -1;
-		rCollumn = -1;
+		switch(direction)
+		{
+		case Key::Down:
+			for (unsigned short i = startRow + 1; i < fieldSize[Size::Height]; ++i)
+			{
+				if (area[i][startCol] == Block::Untouched)
+					freeSpace++;
+				else
+					return freeSpace;
+			}
+			return freeSpace;
+			break;
 
-		quarter = Quarter::I;
+		case Key::Right:
+			for (unsigned short j = startCol + 1; j < fieldSize[Size::Width]; ++j)
+			{
+				if (area[startRow][j] == Block::Untouched)
+					freeSpace++;
+				else
+					return freeSpace;
+			}
+			return freeSpace;
+			break;
+
+		case Key::Up:
+			for (short i = startRow - 1; i >= 0; --i)
+			{
+				if (area[i][startCol] == Block::Untouched)
+					freeSpace++;
+				else
+					return freeSpace;
+			}
+			return freeSpace;
+			break;
+
+		case Key::Left:
+			for (short j = startCol - 1; j >= 0; --i)
+			{
+				if (area[startRow][j] == Block::Untouched)
+					freeSpace++;
+				else
+					return freeSpace;
+			}
+			return freeSpace;
+			break;
+
+		default:
+			return freeSpace;
+			break;
+		}
 	}
+	public:
+		bool active;
+		unsigned short nextRow, nextCollumn; // where to shoot
+		shipHunter(unsigned short cRow, unsigned short cCol): firstEdgeHitted(false), active(true), centerRow(cRow), centerCollumn(cCol), nextRow(cRow), nextCollumn(cCol)
+		{ 
+			// searching for most likeable direction
+			unsigned short maxx = 0;
+			if (freeSpaceFromPoint(centerRow, centerCollumn, Key::Down) > maxx)
+				direction = Key::Down;
+
+			else if (freeSpaceFromPoint(centerRow, centerCollumn, Key::Right) > maxx)
+				direction = Key::Right;
+
+			else if (freeSpaceFromPoint(centerRow, centerCollumn, Key::Up) > maxx)
+				direction = Key::Up;
+
+			else if (freeSpaceFromPoint(centerRow, centerCollumn, Key::Left) > maxx)
+				direction = Key::Left;
+
+			else
+				direction = Key::None;
+		}
+		void generateNextPoint(bool lastShotSuccess == true)
+		{
+			if (lastShotSuccess)
+			{
+				switch (direction)
+				{
+				case Key::Down:
+					if (nextRow + 1 < fieldSize[Size::Height])
+						nextRow++;
+					else
+						firstEdgeHitted = true;
+					break;
+
+				case Key::Up:
+					if (nextRow - 1 >= 0)
+						nextRow--;
+					else
+						
+				}
+			}
+		}
+	}
+	unsigned short freeSpaceFromPoint(unsigned short startRow, unsigned short startCol, Key direction)
+	{
+		unsigned short freeSpace = 0;
+		
+		if (
+			startRow < 0 || startRow >= fieldSize[Size::Height] ||
+			startCol < 0 || startCol >= fieldSize[Size::Width]
+			)
+			return freeSpace;
+
+		switch(direction)
+		{
+		case Key::Down:
+			for (unsigned short i = startRow + 1; i < fieldSize[Size::Height]; ++i)
+			{
+				if (area[i][startCol] == Block::Untouched)
+					freeSpace++;
+				else
+					return freeSpace;
+			}
+			return freeSpace;
+			break;
+
+		case Key::Right:
+			for (unsigned short j = startCol + 1; j < fieldSize[Size::Width]; ++j)
+			{
+				if (area[startRow][j] == Block::Untouched)
+					freeSpace++;
+				else
+					return freeSpace;
+			}
+			return freeSpace;
+			break;
+
+		case Key::Up:
+			for (short i = startRow - 1; i >= 0; --i)
+			{
+				if (area[i][startCol] == Block::Untouched)
+					freeSpace++;
+				else
+					return freeSpace;
+			}
+			return freeSpace;
+			break;
+
+		case Key::Left:
+			for (short j = startCol - 1; j >= 0; --i)
+			{
+				if (area[startRow][j] == Block::Untouched)
+					freeSpace++;
+				else
+					return freeSpace;
+			}
+			return freeSpace;
+			break;
+
+		default:
+			return freeSpace;
+			break;
+		}
+	}
+	*/
 	void getArea(/* ship settings while wharfing */ shipPar S = shipPar())
 	{
 		printUpperEdge("Your field");
@@ -649,12 +816,25 @@ public:
 			}
 		}
 	}
+public:
+	Player()
+	{
+		createArea();
+		setUpArea();
+		setPoints();
+
+		rRow = -1;
+		rCollumn = -1;
+
+		quarter = Quarter::I;
+	}
 	void getShot()
 	{
 		unsigned short row, collumn;
 		ShotResult rez;
 		do
 		{
+
 			// generate coordinates to shoot at
 			switch (quarter)
 			{
@@ -714,6 +894,8 @@ public:
 class Enemy : public Seaman
 {
 private:
+	bool helped;
+
 	void findFirstUntouched(unsigned short &row, unsigned short &collumn)
 	{
 		for (int i = 0; i < fieldSize[Size::Height]; ++i)
@@ -733,16 +915,6 @@ private:
 				}
 			}
 		}
-	}
-public:
-	Enemy()
-	{
-		createArea();
-		setUpArea();
-		setPoints();
-
-		rRow = -1;
-		rCollumn = -1;
 	}
 	void getArea(/* coordinates of the target mark */ short row = -1, short collumn = -1) const
 	{
@@ -838,6 +1010,18 @@ public:
 			}
 		}
 	}
+public:
+	Enemy()
+	{
+		createArea();
+		setUpArea();
+		setPoints();
+
+		rRow = -1;
+		rCollumn = -1;
+
+		helped = false;
+	}
 	void getShot()
 	{
 		// where is the target
@@ -885,6 +1069,34 @@ public:
 					action = Key::None;
 					break;
 				}
+			}
+
+			else if (action == Key::Help && !helped)
+			{
+				bool found = false;
+				for (unsigned short i = 0; i < fieldSize[Size::Height]; ++i)
+				{
+					for (unsigned short j = 0; j < fieldSize[Size::Width]; ++j)
+					{
+						switch (area[i][j])
+						{
+						case Block::HorizontalBody:
+						case Block::VerticalBody:
+						case Block::ShipTop:
+						case Block::ShipBottom:
+						case Block::ShipRight:
+						case Block::ShipLeft:
+							area[i][j] = Block::Suggestion;
+							found = true;
+							break;
+						}
+						if (found)
+							break;
+					}
+					if (found)
+						break;
+				}
+				helped = true;
 			}
 		}
 		// show the result
