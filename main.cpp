@@ -79,7 +79,7 @@ map<const Block, const string> field
 	{ Block::HorizontalBody, "-" },
 	{ Block::VerticalBody, "║"}
 };
-bool showEnemeyShips = true;
+bool showEnemeyShips = false;
 const short maxMessageShowTime = 5;
 
 // GAME SETTINGS
@@ -97,7 +97,7 @@ map<const unsigned short, const unsigned short> shipSettings
 	{ 5, 1 },
 	{ 4, 1 },
 	{ 3, 3 },
-	{ 2, 3 }
+	{ 2, 2 }
 };
 
 // return what key on keyboard was pressed
@@ -156,7 +156,7 @@ bool isItPlayable()
 
 	unsigned short maxShipLenght = shipSettings.rbegin()->first;
 	// can ships be fitted in field
-	return (fieldSize[Size::Width] + 1) * (fieldSize[Size::Height] + 1) >= requiredBlocks &&
+	return (fieldSize[Size::Width] + 2) * (fieldSize[Size::Height] + 2) >= requiredBlocks &&
 	(maxShipLenght <= fieldSize[Size::Height] || maxShipLenght <= fieldSize[Size::Width]);
 }
 
@@ -175,7 +175,7 @@ protected:
 
 	struct shipPar
 	{
-		unsigned short row, collumn, length;
+		short row, collumn, length;
 		bool vertical;
 		shipPar(): row(0), collumn(0), length(0), vertical(false) { }
 		shipPar(unsigned short _l): row(0), collumn(0), length(_l), vertical(false) { }
@@ -209,7 +209,12 @@ protected:
 	void printUpperEdge(string Title = "") const
 	{
 		short topsBeforeTitle, topsAfterTitle;
-		if ((fieldSize[Size::Width] - Title.size()) % 2 == 0)
+		if (Title.size() > fieldSize[Size::Width])
+		{
+			Title = "";
+			topsBeforeTitle = fieldSize[Size::Width];
+		}
+		else if ((fieldSize[Size::Width] - Title.size()) % 2 == 0)
 		{
 			topsBeforeTitle = (fieldSize[Size::Width] - Title.size()) / 2;
 			topsAfterTitle = topsBeforeTitle;
@@ -720,7 +725,7 @@ private:
 		// message dissapear counter
 		short timeShowed = 0;
 
-		while(shipS != shipSettings.end())
+		while(!(shipS == shipSettings.end() && howMany == 0))
 		{
 			action = Key::None;
 
